@@ -429,6 +429,96 @@ def elim_succ_fbl_frt(comb,nbr_stra,n_players):
     
    print(tempComb)
 
+def get_val_all_str(player,comb):
+    print("getting all values of all strategies of player " + str(player))
+    player_comb = []
+    for subc in comb:
+      if subc[0][len(subc[0])-1] == player :
+        player_comb.append(subc)
+    return player_comb
+
+def get_max_str(player,strp,player_comb):
+  max_vstr = player_comb[0]
+  for subc in player_comb:
+    if strp == subc[0][player]:
+      if subc[1] > max_vstr[1] :
+        max_vstr = subc
+        
+  max_str = max_vstr[0].copy()
+  max_str.pop()
+  return max_str #comb of max value of strategy strp
+  
+
+def get_max_all_str(player,player_comb,nbr_stra):
+  all_str_max = []
+  for strp in range(nbr_stra[player]):
+      str_max = get_max_str(player,strp,player_comb)
+      #print("max value of strategy "+str(strp)+ " of player "+ str(player) + " is " + str(str_max[1]))
+      all_str_max.append(str_max)
+  return all_str_max
+
+def common(list1,list2):
+  equils = []
+  i1 = 0
+  while i1 < len(list1):
+    i2 = 0
+    while i2 < len(list2):
+      print ( " list 1  = " + str(list1[i1]))
+      print ( " list 2  = " + str(list2[i2]))
+      if list1[i1][0] == list2[i2][0] and list1[i1][1] == list2[i2][1] :
+        equils.append(list1[i1])
+
+      i2+=1
+    i1+=1
+  return equils
+
+def verify_equil(equil):
+  print(equil)
+  nash_equilibrium_list = []
+  player1 = 0
+  while player1 < len(equil):
+    #check right side
+    player2 = player1 + 1
+    while player2 < len(equil):
+      equils = common(equil[player1],equil[player2])
+      if len(equils) > 0 : 
+        nash_equilibrium_list.append(equils)
+       
+      player2+=1
+    player1+=1
+
+  #print(nash_equilibrium_list)
+    
+  if len(nash_equilibrium_list) > 0 : 
+     print("les profils d'equilibre de nash sont")
+     print(nash_equilibrium_list)
+  else : 
+    print(" pas d'equilibre de nash")
+
+        
+    
+
+def nash_equi(comb,nbr_stra,n_players):
+    print("nash equilibrium")
+    # pour chaque joueur on va choisir la meilleure strategie qu'il trouve meilleur pour lui
+    equil = []
+    player = 0
+    while player < n_players:
+      player_comb = get_val_all_str(player,comb)
+      print(player_comb)
+      str_max =  get_max_all_str(player,player_comb,nbr_stra)
+      print(str_max)
+      #equil.append(player)
+      equil.append(str_max)
+      # getBestStrategyAgainstRest(player,comb,nbr_stra,n_players)
+      player+=1
+
+    #print(equil)
+
+    nash_list = verify_equil(equil)
+      
+
+
 def init():
   n_players = int(input("entrer le nombre des joueurs"))  # the number of players 
   nbr_stra = n_players * [] #a table that has the number of strategies of each player
@@ -484,8 +574,8 @@ while not leave :
           elim_succ_str_frt(comb,nbr_stra,n_players)
       if choice == 4 :
           elim_succ_fbl_frt(comb,nbr_stra,n_players)
-      # if choice == 5 :
-      #     nash_equi(matrix)
+      if choice == 5 :
+          nash_equi(comb,nbr_stra,n_players)
       # if choice == 6 :
       #     prof_pareto(matrix)
       # if choice == 7 :
