@@ -975,7 +975,7 @@ class Ui_MainWindow(object):
         print("les probabilites de joueur1 sont ")
         text += "les probabilites de joueur1 sont \n"
         print(sol1)
-        text += str(sol) + "\n"
+        text += str(sol1) + "\n"
         z = 1
         print(sol1.get(p))
         if sol1.get(q) != None:
@@ -995,7 +995,7 @@ class Ui_MainWindow(object):
         print("les probabilites de joueur2 sont ")
         text += "les probabilites de joueur2 sont \n"
         print(sol2)
-        text += str(sol) + "\n"
+        text += str(sol2) + "\n"
         z = 1
         print(sol2.get(p))
         if sol1.get(q) != None:
