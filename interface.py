@@ -183,9 +183,9 @@ class Ui_MainWindow(object):
         self.pushButton_fbl_dom_str.setText(_translate(
             "MainWindow", "determiner la stratégie faiblement dominante"))
         self.pushButton_elim_succ_str_frt.setText(_translate(
-            "MainWindow", "equilibres d\'élimination successives des stratégies fortement dominantes"))
+            "MainWindow", "equilibres d\'élimination successives des stratégies fortement dominees"))
         self.pushButton_elim_succ_fbl_frt.setText(_translate(
-            "MainWindow", "equilibres d\'élimination successives des stratégies faiblement dominantes"))
+            "MainWindow", "equilibres d\'élimination successives des stratégies faiblement dominees"))
         self.pushButton_nash_equi.setText(
             _translate("MainWindow", "équilibres de Nash"))
         self.pushButton_prof_pareto.setText(
@@ -645,7 +645,8 @@ class Ui_MainWindow(object):
         print(tempComb)
         text = ""
         reached_end = False
-        while not reached_end:
+        eliminated = False
+        while len(tempComb) > 2 and not reached_end:
             player = 0
             print("up")
             print(tempComb)
@@ -662,6 +663,7 @@ class Ui_MainWindow(object):
                 reached_end = True
                 print("none of the players got weak strategy end of operation")
                 text = "ya pas  de strategies dominantes" + "\n"
+                break
             else:
                 for i, sub in enumerate(wstr):
                     if sub != -1:
@@ -845,35 +847,72 @@ class Ui_MainWindow(object):
         nash_list = self.verify_equil(equil)
         self.show_results()
 
+    def compare_optimum_dom(self, l1, l2):
+        for i in range(len(l1)):
+            if l1[i] > l2[i]:
+                return False
+        return True
+
+    def compare(self, l1, l2):
+        for i in range(len(l1)):
+            if l1[i] != l2[i]:
+                return False
+        return True
+
     def prof_pareto(self):
         print("optimum pareto (paretos dominants)")
         comb = self.comb
         nbr_stra = self.nbr_stra
         n_players = self.nplayers
-        offs = []
+        offs = []  # is a list containing strategie and it's values
         p = []
-        pay = []
+        #pay = []
+        text = "profils pareto dominants : \n"
         for sub_comb in comb:
             print(sub_comb)
-            # print(l)
+        #  print("ba3lolo")
             # print(sub_comb[1])
             # print(" "+str(sub_comb[0][len(sub_comb[0])-1])+" == "+str(n_players-1) )
+
             p.append(sub_comb[1])
             if sub_comb[0][len(sub_comb[0])-1] == n_players-1:
                 l = sub_comb[0].copy()
                 l.pop()
                 print(" l = " + str(l))
+        #       text += "strategie = "+str(l) + "\n"
+                pay = []
                 pay.append(l)
                 pay.append(p)
-                print(" p = " + str(p))
-                print(" pay = " + str(pay))
+                print(" gain = " + str(p))
+        #        text += "gain = "+str(p) + "\n"
                 offs.append(pay)
-                print(" payoffs = " + str(offs))
-                pay.clear()
-                p.clear()
+                print(" combined = " + str(pay))
+                print(" list des strategies avec leurs gains = " + str(offs))
+                #text += "combined = "+str(offs) + "\n"
+                p = []
 
+        copy_offs = offs.copy()
         print(offs)
-        self.output = str(offs)
+        print("begin parkour")
+
+        while len(copy_offs) > 0:
+            val1 = copy_offs.pop()
+            # current strategy comparing to other strategies
+            strategy = val1[0]
+            profil = []
+            for sub in offs:
+                if not self.compare(sub[0], strategy):
+                    if self.compare_optimum_dom(val1[1], sub[1]):
+                        profil.append(sub[0])
+            print("profil dominant de la strategie " + str(strategy))
+            print(profil)
+            if len(profil) > 0:
+                text += "\nrofil dominant de la strategie " + str(strategy)
+                text += "\n "+str(profil)
+            else:
+                text += "\npas de pareto domin pour " + str(strategy)
+
+        self.output = text
         self.show_results()
 
     def niv_sec(self):
