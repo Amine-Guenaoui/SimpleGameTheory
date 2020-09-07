@@ -907,10 +907,10 @@ class Ui_MainWindow(object):
             print("profil dominant de la strategie " + str(strategy))
             print(profil)
             if len(profil) > 0:
-                text += "\nrofil dominant de la strategie " + str(strategy)
+                text += "\n\nprofil dominant de la strategie " + str(strategy)
                 text += "\n "+str(profil)
             else:
-                text += "\npas de pareto domin pour " + str(strategy)
+                text += "\npas de pareto domin pour " + str(strategy) + "\n"
 
         self.output = text
         self.show_results()
