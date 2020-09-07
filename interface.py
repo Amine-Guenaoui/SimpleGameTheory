@@ -1104,45 +1104,237 @@ class Ui_MainWindow(object):
         copy = all_str_j
         new_list = []
         x = 0
-        for i in range(3):
-            for j in range(3):
+        for i in range(nbr_stra[player]):
+            for j in range(nbr_stra[self.nplayers - player-1]):
                 if x < nbr_stra[player]:
-                    new_list.append(all_str_j[j*3+i])
+                    new_list.append(
+                        all_str_j[j*nbr_stra[self.nplayers - player-1]+i])
                 x += 1
         return new_list
 
-    def count_max_min_mix(self, all_str_j):
-
-        print('calcul de max_min en mixte')
+    def count_min_max_mix(self, all_str_j, nbr_stra, player):
+        print('calcul de min_max en mixte du joueur '+str(player+1))
         # SIMPLEX ALGORITHM MUST BE APLPLIED
         # simplex Algorithm
-        A = np.array([
-            [-all_str_j[0][1],
-             -all_str_j[1][1],
-             -all_str_j[2][1],
-             1],
-            [-all_str_j[3][1],
-             -all_str_j[4][1],
-             -all_str_j[5][1],
-             1],
-            [-all_str_j[6][1],
-             -all_str_j[7][1],
-             -all_str_j[8][1],
-             1],
-            [1, 1, 1, 0],
-            [-1, -1, -1, 0]
-        ])
-        b = np.array([0, 0, 0, 1, -1])
-        c = np.array([1, 0, 0, 0])
+        text = 'calcul de max_min en mixte du joueur '+str(player+1)+"\n"
+        if nbr_stra[player] > 2:  # if current player has 3 strategies
+            # if other player has 3 strategies 3x3
+            if nbr_stra[self.nplayers-player-1] > 2:
+                text += "3x3 \n"
+                A = np.array([
+                    [all_str_j[0][1],
+                        all_str_j[1][1],
+                        all_str_j[2][1],
+                        -1],
+                    [all_str_j[3][1],
+                        all_str_j[4][1],
+                        all_str_j[5][1],
+                        -1],
+                    [all_str_j[6][1],
+                        all_str_j[7][1],
+                        all_str_j[8][1],
+                        -1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 0, 1, -1])
+                c = np.array([1, 0, 0, 0])
 
-        res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
 
-        print('Optimal value:', res.fun, '\nX:', res.x)
-        text = ""
-        text += "Valeur optimal :\n"
-        text += str(res.fun) + "\n"
-        text += "probabilites :"
-        text += str(res.x)
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+            else:  # if current player has 3 strategies and the other 2
+                text += "3x2 \n"
+                A = np.array([
+                    [all_str_j[0][1],
+                        all_str_j[1][1],
+                        all_str_j[2][1],
+                        -1],
+                    [all_str_j[3][1],
+                        all_str_j[4][1],
+                        all_str_j[5][1],
+                        -1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 1, -1])
+                c = np.array([1, 0, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+        else:  # 2x3 and 2x2
+            # if other player has 3 strategies 2x3
+            if nbr_stra[self.nplayers-player-1] > 2:
+                text += "2x3 \n"
+                A = np.array([
+                    [all_str_j[0][1],
+                        all_str_j[1][1],
+                        -1],
+                    [all_str_j[1][1],
+                        all_str_j[3][1],
+                        -1],
+                    [all_str_j[4][1],
+                        all_str_j[5][1],
+                        -1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 0, 1, -1])
+                c = np.array([1, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+            else:  # if current player has 2 strategies
+                # if other player has 2 strategies
+                text += "2x2 \n"
+                A = np.array([
+                    [all_str_j[0][1],
+                        all_str_j[1][1],
+                        -1],
+                    [all_str_j[2][1],
+                        all_str_j[3][1],
+                        -1],
+                    [1, 1, 0],
+                    [-1, -1, 0]
+                ])
+                b = np.array([0, 0, 0, 1, -1])
+                c = np.array([1, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+        self.output = text
+        self.show_results()
+
+    def count_max_min_mix(self, all_str_j, nbr_stra, player):
+
+        print('calcul de max_min en mixte du joueur '+str(player+1))
+        # SIMPLEX ALGORITHM MUST BE APLPLIED
+        # simplex Algorithm
+        text = 'calcul de max_min en mixte du joueur '+str(player+1)+"\n"
+
+        if nbr_stra[player] > 2:  # if current player has 3 strategies
+            # if other player has 3 strategies 3x3
+            if nbr_stra[self.nplayers-player-1] > 2:
+                text += "3x3 \n"
+                A = np.array([
+                    [-all_str_j[0][1],
+                        -all_str_j[3][1],
+                        -all_str_j[6][1],
+                        1],
+                    [-all_str_j[1][1],
+                        -all_str_j[4][1],
+                        -all_str_j[7][1],
+                        1],
+                    [-all_str_j[2][1],
+                        -all_str_j[5][1],
+                        -all_str_j[8][1],
+                        1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 0, 1, -1])
+                c = np.array([1, 0, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+            else:  # 3x2
+                text += "3x2 \n"
+                A = np.array([
+                    [-all_str_j[0][1],
+                        -all_str_j[2][1],
+                        -all_str_j[4][1],
+                        1],
+                    [-all_str_j[1][1],
+                        -all_str_j[3][1],
+                        -all_str_j[5][1],
+                        1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 1, -1])
+                c = np.array([1, 0, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+        else:  # 2x3 and 2x2
+            # if other player has 3 strategies 2x3
+            if nbr_stra[self.nplayers-player-1] > 2:
+                text += "2x3 \n"
+                A = np.array([
+                    [-all_str_j[0][1],
+                        -all_str_j[3][1],
+                        1],
+                    [-all_str_j[1][1],
+                        -all_str_j[4][1],
+                        1],
+                    [-all_str_j[2][1],
+                        -all_str_j[5][1],
+                        1],
+                    [1, 1, 1, 0],
+                    [-1, -1, -1, 0]
+                ])
+                b = np.array([0, 0, 0, 1, -1])
+                c = np.array([1, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
+            else:  # if current player has 2 strategies
+                # if other player has 2 strategies
+                text += "2x2 \n"
+                A = np.array([
+                    [-all_str_j[0][1],
+                        -all_str_j[2][1],
+                        1],
+                    [-all_str_j[1][1],
+                        -all_str_j[3][1],
+                        1],
+                    [1, 1, 0],
+                    [-1, -1, 0]
+                ])
+                b = np.array([0, 0, 1, -1])
+                c = np.array([1, 0, 0])
+
+                res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
+
+                print('Optimal value:', res.fun, '\nX:', res.x)
+                text += "Valeur optimal :\n"
+                text += str(res.fun) + "\n"
+                text += "probabilites :"
+                text += str(res.x)
         self.output = text
         self.show_results()
 
@@ -1176,7 +1368,8 @@ class Ui_MainWindow(object):
             print("strategie mixte")
             # pour J 1 arg max min f(o1,y)
             # pour J 2 arg min max f(x,o2)
-            max_min = self.count_max_min_mix(all_str_j)
+            max_min = self.count_max_min_mix(all_str_j, nbr_stra, 0)
+            min_max = self.count_max_min_mix(all_str_j, nbr_stra, 1)
             #text = "point selle exist est "+str(maxmin) + "\n"
 
 
