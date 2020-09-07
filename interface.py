@@ -14,6 +14,7 @@ from sympy.plotting import plot
 import sympy as sp
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QTableWidgetItem, QMessageBox
+from scipy.optimize import linprog
 
 
 class Ui_MainWindow(object):
@@ -329,7 +330,7 @@ class Ui_MainWindow(object):
         # print("-------------------------------------")
         while i < len(str1):
             # print("s1 = "+str(str1[i])+" s2 = "+str(str2[i]))
-            if str1[i] < str2[i]:  # if strategy 1 is dominante
+            if str1[i] <= str2[i]:  # if strategy 1 is dominante
                 break
             i += 1
         # print("------")
@@ -341,7 +342,7 @@ class Ui_MainWindow(object):
         i = 0
         while i < len(str1):
             # print("s1 = "+str(str1[i])+" s2 = "+str(str2[i]))
-            if str1[i] <= str2[i]:  # if strategy 1 is dominante
+            if str1[i] < str2[i]:  # if strategy 1 is dominante
                 break
             i += 1
         if i == len(str1):
@@ -352,7 +353,7 @@ class Ui_MainWindow(object):
         i = 0
         while i < len(str1):
             # print("s1 = "+str(str1[i])+" s2 = "+str(str2[i]))
-            if str1[i] > str2[i]:  # if strategy 1 is strictly dominaited
+            if str1[i] >= str2[i]:  # if strategy 1 is strictly dominaited
                 break
             i += 1
         if i == len(str1):
@@ -363,7 +364,7 @@ class Ui_MainWindow(object):
         i = 0
         while i < len(str1):
             # print("s1 = "+str(str1[i])+" s2 = "+str(str2[i]))
-            if str1[i] >= str2[i]:  # if strategy 1 is weakly dominaited
+            if str1[i] > str2[i]:  # if strategy 1 is weakly dominaited
                 break
             i += 1
         if i == len(str1):
@@ -500,6 +501,7 @@ class Ui_MainWindow(object):
         dom_stra = -1
         # Right side
         dom_straR = -1  # supposedly that the first strategy of the current player is the dominante one
+
         strategy = 0
         # current strategy values
         str1 = self.getStrategyValues(player, strategy, tempComb)
@@ -625,9 +627,11 @@ class Ui_MainWindow(object):
     def eliminateStrategy(self, tempComb, player, wstr):
         newComb = []
         print("eliminating "+str(wstr)+" of player "+str(player))
-        for sub in tempComb:
+        print("length before "+str(len(tempComb)))
+        for i, sub in enumerate(tempComb):
             if sub[0][player] != wstr:
                 newComb.append(sub)  # remove the strategy from comb
+        print("length before "+str(len(newComb)))
         return newComb
 
     def elim_succ_str_frt(self):
@@ -640,35 +644,42 @@ class Ui_MainWindow(object):
         print("up up ")
         print(tempComb)
         text = ""
-        while len(tempComb) > n_players:
+        reached_end = False
+        while not reached_end:
             player = 0
-            dom_stra_exist = False
             print("up")
             print(tempComb)
+            wstr = []
             while player < n_players:
-                wstr = self.getStrictWeakestStrategy(
-                    tempComb, player, nbra_stra_temp)
-
-                if wstr != -1:
-                    print("eliminating strategy " + str(wstr+1) +
-                          " of player " + str(player+1))
-                    tempComb = self.eliminateStrategy(tempComb, player, wstr)
-                    print("down")
-                    print(tempComb)
-                    dom_stra_exist = True
-                    break
-
+                wstr.append(self.getStrictWeakestStrategy(
+                    tempComb, player, nbra_stra_temp))
                 player += 1
 
-            if not dom_stra_exist:
-                print("ya pas  de strategies dominantes")
+            print("strategies are")
+            print(wstr)
+            print("eliminations")
+            if(not self.check_if_found(wstr)):  # checking if all strategies can't be eliminated
+                reached_end = True
+                print("none of the players got weak strategy end of operation")
                 text = "ya pas  de strategies dominantes" + "\n"
-                break
+            else:
+                for i, sub in enumerate(wstr):
+                    if sub != -1:
+                        print("eliminating strategy " +
+                              str(sub)+" of player "+str(i+1))
+                        tempComb = list(self.eliminateStrategy(
+                            tempComb, player, sub))
             # cone = input(" proceed ...")
         text += str(tempComb)
         self.output = text
         print(tempComb)
         self.show_results()
+
+    def check_if_found(self, wstr):
+        for i in wstr:
+            if i != -1:
+                return True
+        return False
 
     def elim_succ_fbl_frt(self):
         print("elimination des strategies faiblement dominnes")
@@ -958,7 +969,7 @@ class Ui_MainWindow(object):
                 Eq(str_p1[0][1] * p + (1-p) * str_p1[1][1], str_p1[2][1] * p + str_p1[3]
                    [1]*(1-p))
             ]
-
+        text = ""
         eqs1 = []
         eqs2 = []
         for sub in equations_1:
@@ -968,49 +979,56 @@ class Ui_MainWindow(object):
         print(eqs1)
         print()
         print(eqs2)
-
+        text += " premiere equation " + str(eqs1) + "\n"
         sol1 = solve(eqs1)
         sol2 = solve(eqs2)
-        text = ""
         print("les probabilites de joueur1 sont ")
         text += "les probabilites de joueur1 sont \n"
         print(sol1)
         text += str(sol1) + "\n"
         z = 1
-        print(sol1.get(p))
-        if sol1.get(q) != None:
-            print(sol1.get(q))
-            z -= sol1.get(p) - sol1.get(q)
-            print('1-x-y = '+str(z))
-        else:
-            z -= sol1.get(p)
-            print('1-p = '+str(z))
+        if len(sol1) > 0:
+            print(sol1.get(p))
+            if sol1.get(q) != None:
+                print(sol1.get(q))
+                z -= sol1.get(p) - sol1.get(q)
+                print('1-x-y = '+str(z))
+            else:
+                z -= sol1.get(p)
+                print('1-p = '+str(z))
 
-        text += str(z)+"\n"
+            text += str(z)+"\n"
+        else:
+            text = "pas de sol pour premier joueur \n"
 
         # print(q_sol)
         #z = 1-sol1[p]-sol1[q]
         # print(z)
+        text += " 2eme equation " + str(eqs2) + "\n"
         print()
         print("les probabilites de joueur2 sont ")
         text += "les probabilites de joueur2 sont \n"
         print(sol2)
         text += str(sol2) + "\n"
         z = 1
-        print(sol2.get(p))
-        if sol1.get(q) != None:
-            print(sol2.get(q))
-            z -= sol2.get(p) - sol2.get(q)
-            print('1-x-y = '+str(z))
+        if len(sol2) > 0:
+            print(sol2.get(p))
+            if sol1.get(q) != None:
+                print(sol2.get(q))
+                z -= sol2.get(p) - sol2.get(q)
+                print('1-x-y = '+str(z))
+            else:
+                z -= sol2.get(p)
+                print('1-x = '+str(z))
+            text += str(z)+"\n"
         else:
-            z -= sol2.get(p)
-            print('1-x = '+str(z))
-        text += str(z)+"\n"
+            text += "pas de sol pour deuxieme joueur \n"
         #z = 1-sol1[x]-sol1[y]
         # print(z)
         print()
         print()
         self.output = text
+        self.show_results()
 
     def count_max_min(self, all_str, nbr_stra, player):
         mins = []
@@ -1093,47 +1111,40 @@ class Ui_MainWindow(object):
                 x += 1
         return new_list
 
-    def count_max_min_mix(self, all_str_j2):
+    def count_max_min_mix(self, all_str_j):
 
         print('calcul de max_min en mixte')
+        # SIMPLEX ALGORITHM MUST BE APLPLIED
+        # simplex Algorithm
+        A = np.array([
+            [-all_str_j[0][1],
+             -all_str_j[1][1],
+             -all_str_j[2][1],
+             1],
+            [-all_str_j[3][1],
+             -all_str_j[4][1],
+             -all_str_j[5][1],
+             1],
+            [-all_str_j[6][1],
+             -all_str_j[7][1],
+             -all_str_j[8][1],
+             1],
+            [1, 1, 1, 0],
+            [-1, -1, -1, 0]
+        ])
+        b = np.array([0, 0, 0, 1, -1])
+        c = np.array([1, 0, 0, 0])
 
-        mins = []
-        eq1 = sp.Function('eq1')
-        eq2 = sp.Function('eq2')
-        eq3 = sp.Function('eq3')
-        p = symbols('p')
-        q = symbols('q')
+        res = linprog(c, A_ub=A, b_ub=b, bounds=(0, None))
 
-        eq1 = Eq(all_str_j2[0][1]*p+all_str_j2[1]
-                 [1]*q+(1-p-q)*all_str_j2[2][1], 1)
-        eq2 = Eq(all_str_j2[3][1]*p+all_str_j2[4]
-                 [1]*q+(1-p-q)*all_str_j2[5][1], 1)
-        eq3 = Eq(all_str_j2[6][1]*p+all_str_j2[7]
-                 [1]*q+(1-p-q)*all_str_j2[8][1], 1)
-
-        print(sp.simplify(eq1))
-        print(sp.simplify(eq2))
-        print(sp.simplify(eq3))
-        eqs = []
-        eqs.append(sp.simplify(eq1))
-        eqs.append(sp.simplify(eq2))
-        eqs.append(sp.simplify(eq3))
-        print(eqs)
-        sol1 = solve(eq1)
-        sol2 = solve(eq2)
-        sol3 = solve(eq3)
-        sol4 = solve(eqs)
-        print(sol1)
-        print(sol2)
-        print(sol3)
-        print(sol4)
-        # graph = plot(eq1, show=False)
-        # graph2 = plot(eq2, show=False)
-        # graph3 = plot(eq3, show=False)
-        # graph.append(graph2[0])
-        # graph.append(graph3[0])
-        # print(graph)
-        # graph.show()
+        print('Optimal value:', res.fun, '\nX:', res.x)
+        text = ""
+        text += "Valeur optimal :\n"
+        text += str(res.fun) + "\n"
+        text += "probabilites :"
+        text += str(res.x)
+        self.output = text
+        self.show_results()
 
     def val_null_sum(self):
         print(" verification de la valeur du jeu a somme null")
@@ -1155,7 +1166,9 @@ class Ui_MainWindow(object):
         print(all_str_j2)
         maxmin = self.count_min_max(all_str_j2, nbr_stra, 0)
         diff = maxmin-minmax
-        text = ""
+        text = "minmax = "+str(minmax) + "maxmin = "+str(maxmin)
+        self.output = text
+        self.show_results()
         if diff == 0:
             print("point selle exist est "+str(maxmin))
             text = "point selle exist est "+str(maxmin) + "\n"
@@ -1163,10 +1176,8 @@ class Ui_MainWindow(object):
             print("strategie mixte")
             # pour J 1 arg max min f(o1,y)
             # pour J 2 arg min max f(x,o2)
-            max_min = self.count_max_min_mix(all_str_j2)
+            max_min = self.count_max_min_mix(all_str_j)
             #text = "point selle exist est "+str(maxmin) + "\n"
-        # min_max = count_min_max_mix(all_str_j)
-        self.output = text
 
 
 if __name__ == "__main__":
