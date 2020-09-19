@@ -976,7 +976,8 @@ class Ui_MainWindow(object):
         eq2 = sp.Function('eq2')
         p = symbols('p')
         q = symbols('q')
-
+        there_q1 = False
+        there_q2 = False
         print("player 1 ")
         for sub in str_p1:
             print(sub)
@@ -984,30 +985,60 @@ class Ui_MainWindow(object):
         for sub in str_p2:
             print(sub)
         if nbr_stra[0] > 2:
-            equations_1 = [
-                Eq(str_p2[0][1] * p + str_p2[1][1] * q + (1-p-q) * str_p2[2][1], str_p2[3][1] * p + str_p2[4]
-                   [1] * q + (1-p-q) * str_p2[5][1]),
-                Eq(str_p2[3][1] * p + str_p2[4]
-                   [1] * q + (1-p-q) * str_p2[5][1], str_p2[6][1] * p + str_p2[7][1] * q + (1-p-q) * str_p2[8][1])
-            ]
+            if nbr_stra[1] > 2:
+                # 3x3
+                there_q1 = True
+                there_q2 = True
+                equations_1 = [
+                    Eq(str_p2[0][1] * p + str_p2[1][1] * q + (1-p-q) * str_p2[2][1], str_p2[3][1] * p + str_p2[4]
+                       [1] * q + (1-p-q) * str_p2[5][1]),
+                    Eq(str_p2[3][1] * p + str_p2[4]
+                       [1] * q + (1-p-q) * str_p2[5][1], str_p2[6][1] * p + str_p2[7][1] * q + (1-p-q) * str_p2[8][1])
+                ]
+                equations_2 = [
+                    Eq(str_p1[0][1] * p + str_p1[1][1] * q + (1-p-q) * str_p1[2][1], str_p1[3][1] * p + str_p1[4]
+                       [1] * q + (1-p-q) * str_p1[5][1]),
+                    Eq(str_p1[3][1] * p + str_p1[4]
+                       [1] * q + (1-p-q) * str_p1[5][1], str_p1[6][1] * p + str_p1[7][1] * q + (1-p-q) * str_p1[8][1])
+                ]
+            else:
+                # 3x2
+                there_q1 = True
+                equations_1 = [
+                    Eq(str_p1[0][1] * p + str_p1[2][1] * q + (1-p-q) * str_p1[4][1], str_p1[1][1] * p + str_p1[3]
+                       [1] * q + (1-p-q) * str_p1[5][1])
+                ]
+                equations_2 = [
+                    Eq(str_p1[0][1] * p + (1-p) * str_p1[1][1],
+                       str_p1[2][1] * p + (1-p) * str_p1[3][1]),
+                    Eq(str_p1[2][1] * p + (1-p) * str_p1[3][1],
+                       str_p1[4][1] * p + (1-p) * str_p1[5][1])
+                ]
         else:
-            equations_1 = [
-                Eq(str_p2[0][1] * p + (1-p) * str_p2[1][1], str_p2[2][1] * p + str_p2[3]
-                   [1]*(1-p))
-            ]
+            if nbr_stra[1] > 2:
+                # 2x3
+                there_q2 = True
+                equations_1 = [
+                    Eq(str_p2[0][1] * p + (1-p) * str_p2[3][1],
+                       str_p2[1][1] * p + (1-p) * str_p2[4][1]),
+                    Eq(str_p2[1][1] * p + (1-p) * str_p2[4][1],
+                       str_p2[2][1] * p + (1-p) * str_p2[5][1])
+                ]
+                equations_2 = [
+                    Eq(str_p1[0][1] * p + str_p1[1][1] * q + (1-p-q) * str_p1[2][1], str_p1[3][1] * p + str_p1[4]
+                       [1] * q + (1-p-q) * str_p1[5][1])
+                ]
+            else:
+                # 2x2
+                equations_1 = [
+                    Eq(str_p2[0][1] * p + (1-p) * str_p2[2][1],
+                       str_p2[1][1] * p + (1-p) * str_p2[3][1]),
+                ]
+                equations_2 = [
+                    Eq(str_p1[0][1] * p + (1-p) * str_p1[1][1],
+                       str_p1[2][1] * p + (1-p) * str_p1[3][1])
+                ]
 
-        if nbr_stra[1] > 2:
-            equations_2 = [
-                Eq(str_p1[0][1] * p + str_p1[1][1] * q + (1-p-q) * str_p1[2][1], str_p1[3][1] * p + str_p1[4]
-                   [1] * q + (1-p-q) * str_p1[5][1]),
-                Eq(str_p1[3][1] * p + str_p1[4]
-                   [1] * q + (1-p-q) * str_p1[5][1], str_p1[6][1] * p + str_p1[7][1] * q + (1-p-q) * str_p1[8][1])
-            ]
-        else:
-            equations_2 = [
-                Eq(str_p1[0][1] * p + (1-p) * str_p1[1][1], str_p1[2][1] * p + str_p1[3]
-                   [1]*(1-p))
-            ]
         text = ""
         eqs1 = []
         eqs2 = []
@@ -1028,7 +1059,7 @@ class Ui_MainWindow(object):
         z = 1
         if len(sol1) > 0:
             print(sol1.get(p))
-            if sol1.get(q) != None:
+            if there_q2:
                 print(sol1.get(q))
                 z -= sol1.get(p) - sol1.get(q)
                 print('1-x-y = '+str(z))
@@ -1052,7 +1083,7 @@ class Ui_MainWindow(object):
         z = 1
         if len(sol2) > 0:
             print(sol2.get(p))
-            if sol1.get(q) != None:
+            if there_q1:
                 print(sol2.get(q))
                 z -= sol2.get(p) - sol2.get(q)
                 print('1-x-y = '+str(z))
@@ -1408,7 +1439,7 @@ class Ui_MainWindow(object):
             # pour J 1 arg max min f(o1,y)
             # pour J 2 arg min max f(x,o2)
             max_min = self.count_max_min_mix(all_str_j, nbr_stra, 0)
-            min_max = self.count_max_min_mix(all_str_j, nbr_stra, 1)
+            min_max = self.count_min_max_mix(all_str_j, nbr_stra, 1)
             #text = "point selle exist est "+str(maxmin) + "\n"
 
 
